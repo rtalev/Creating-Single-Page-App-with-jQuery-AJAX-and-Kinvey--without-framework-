@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Messenger</title>
+    <style>
+        label { display: inline-block; width: 5em; }
+        #author, #content { width: 30em; }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+</head>
+<body>
+<div id="main">
+    <textarea id="messages" cols="80" rows="12" disabled="true"></textarea>
+    <div id="controls">
+        <label for="author">Name: </label><input id="author" type="text"><br>
+        <label for="content">Message: </label><input id="content" type="text">
+        <input id="submit" type="button" value="Send">
+        <input id="refresh" type="button" value="Refresh">
+    </div>
+</div>
+<script>window.onload =function () {
+    attachEvents();
+}</script>
+<!--<script src="solution.js"></script>-->
+<script>
+    function attachEvents(){
+        $('#submit').on('click',function () {
+            let author =$('#author').val();
+            let message =$('#content').val();
+            let baseUrl = 'https://messages-5eae1.firebaseio.com/messanger.json';
+            let dataInformation = {
+                author: author,
+                content: message,
+                timestamp: Date.now()
+            };
+
+            $.ajax({
+                method: "POST",
+                url: baseUrl,
+                data: JSON.stringify(dataInformation)
+
+            }).then(displayInfo);
+
+
+        });
+
+        $('#refresh').on('click',displayInfo);
+
+        function displayInfo() {
+            $.ajax({
+                method: 'GET',
+                url: 'https://messages-5eae1.firebaseio.com/messanger.json',
+                ContentType: 'application/json'
+
+            }).then((mess) => {
+                $('#messages').empty();
+
+                let keys = Object.keys(mess).sort((m1, m2) => mess[m1].timestamp - mess[m2].timestamp);
+                for (let m of keys) {
+                    $('#messages').append(`${mess[m].author}: ${mess[m].content}\n`);
+                }
+            }).catch(displayError);
+
+//            $('#messages').text(messageString)
+        }
+
+        function displayError(error) {
+            console.dir(error);
+            let divError = $('<div>').text(`${error.status}: ${error.statusText}`);
+            console.log(divError)
+
+        }
+    }
+</script>
+</body>
+</html>
